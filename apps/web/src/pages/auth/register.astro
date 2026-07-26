@@ -1,0 +1,355 @@
+---
+import AuthLayout from "../../layouts/AuthLayout.astro";
+
+// Pull referral code and type from query
+const refCode = Astro.url.searchParams.get("ref") ?? "";
+const refType = Astro.url.searchParams.get("t") ?? "peer";
+
+// No referral code — hard gate
+if (!refCode) {
+  return new Response(
+    `<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+    <style>
+      body{font-family:Inter,sans-serif;background:#F8F7F4;display:flex;align-items:center;
+        justify-content:center;min-height:100vh;margin:0;padding:1rem}
+      .box{max-width:360px;text-align:center;padding:2.5rem 2rem;background:white;
+        border-radius:.75rem;border:1px solid #D8C893}
+      h1{color:#063A40;font-size:1.4rem;font-weight:700;margin-bottom:.75rem}
+      p{color:#5B6B6E;font-size:.9rem;line-height:1.6;margin-bottom:1.5rem}
+      a{color:#0B555C;font-weight:600;text-decoration:none}
+    </style></head><body>
+    <div class="box">
+      <div style="font-size:2rem;margin-bottom:1rem">🤍</div>
+      <h1>IyaLife is invite-only</h1>
+      <p>Ask a member for your personal invitation link to join.</p>
+      <a href="/">Return home</a>
+    </div></body></html>`,
+    { status: 403, headers: { "Content-Type": "text/html" } },
+  );
+}
+---
+
+<AuthLayout title="Join IyaLife">
+  <div class="flex flex-col gap-5">
+
+    <div class="text-center">
+      <h1 class="text-xl font-bold text-brand-teal-dark">Create your account</h1>
+      <p class="text-sm text-brand-muted mt-1">Invitation only. You're in the right place.</p>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="flex items-center gap-2 justify-center">
+      {[1,2,3].map(step => (
+        <div id={`step-dot-${step}`}
+          class={`w-2 h-2 rounded-full transition-all
+            ${step === 1 ? "bg-brand-teal w-6" : "bg-brand-border"}`}>
+        </div>
+      ))}
+    </div>
+
+    <!-- STEP 1: Basic info -->
+    <div id="step-1">
+      <div class="flex flex-col gap-3.5">
+        <div>
+          <label class="block text-sm font-medium text-brand-ink mb-1.5">
+            Full name
+          </label>
+          <input
+            id="full-name"
+            type="text"
+            placeholder="Your full name"
+            class="w-full px-3.5 py-2.5 rounded-brand border border-brand-border
+              text-brand-ink placeholder:text-brand-muted/50 bg-white text-sm
+              focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-brand-ink mb-1.5">
+            Phone number
+          </label>
+          <div class="flex gap-2">
+            <span class="flex items-center px-3 rounded-brand border border-brand-border
+              bg-brand-surface text-brand-muted text-sm font-medium">
+              🇳🇬 +234
+            </span>
+            <input
+              id="phone"
+              type="tel"
+              placeholder="8012345678"
+              class="flex-1 px-3.5 py-2.5 rounded-brand border border-brand-border
+                text-brand-ink placeholder:text-brand-muted/50 bg-white text-sm
+                focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
+            />
+          </div>
+        </div>
+        <button
+          id="btn-step1"
+          onclick="goStep2()"
+          class="w-full py-3 rounded-brand bg-brand-teal text-white font-semibold
+            text-sm hover:bg-brand-teal-dark transition-colors mt-1">
+          Continue
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Three questions -->
+    <div id="step-2" class="hidden flex flex-col gap-4">
+      <p class="text-sm text-brand-muted text-center">
+        Tell us a little about your journey.
+      </p>
+
+      <!-- Q1 -->
+      <div class="flex flex-col gap-2">
+        <p class="text-sm font-semibold text-brand-ink">What stage is your journey?</p>
+        <div class="grid grid-cols-2 gap-2" id="q1">
+          {["Expecting", "Newborn (0–6m)", "Baby (6–18m)", "Toddler (18m–3yr)", "Growing up (3–5yr)"].map(opt => (
+            <button
+              class="q1-opt px-3 py-2.5 rounded-brand border border-brand-border
+                text-xs font-medium text-brand-muted hover:border-brand-teal
+                hover:text-brand-teal hover:bg-brand-teal/5 transition-all
+                data-[selected=true]:border-brand-teal data-[selected=true]:bg-brand-teal/10
+                data-[selected=true]:text-brand-teal"
+              onclick="selectQ('q1', this)"
+              data-value={opt.toLowerCase().replace(/[^a-z0-9]/g,'-')}>
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="flex flex-col gap-2">
+        <p class="text-sm font-semibold text-brand-ink">What's your biggest challenge?</p>
+        <div class="grid grid-cols-1 gap-2" id="q2">
+          {["Finding trusted products", "Managing household costs", "Needing community", "Health information", "Earning more"].map(opt => (
+            <button
+              class="q2-opt px-3 py-2 rounded-brand border border-brand-border
+                text-xs font-medium text-brand-muted hover:border-brand-teal
+                hover:text-brand-teal text-left transition-all"
+              onclick="selectQ('q2', this)"
+              data-value={opt.toLowerCase().replace(/\s+/g,'-')}>
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="flex flex-col gap-2">
+        <p class="text-sm font-semibold text-brand-ink">What would make your week easier?</p>
+        <div class="grid grid-cols-2 gap-2" id="q3">
+          {["A good deal", "A helpful tip", "Someone who gets it", "All of the above"].map(opt => (
+            <button
+              class="q3-opt px-3 py-2.5 rounded-brand border border-brand-border
+                text-xs font-medium text-brand-muted hover:border-brand-teal
+                hover:text-brand-teal transition-all"
+              onclick="selectQ('q3', this)"
+              data-value={opt.toLowerCase().replace(/\s+/g,'-')}>
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        id="btn-step2"
+        onclick="goStep3()"
+        class="w-full py-3 rounded-brand bg-brand-teal text-white font-semibold
+          text-sm hover:bg-brand-teal-dark transition-colors">
+        Continue
+      </button>
+    </div>
+
+    <!-- STEP 3: OTP Verify -->
+    <div id="step-3" class="hidden flex flex-col gap-4">
+      <div class="text-center">
+        <p class="text-sm text-brand-muted">
+          We sent a verification code to your number.
+          Enter it below to complete registration.
+        </p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-brand-ink mb-1.5">
+          Verification code
+        </label>
+        <input
+          id="otp"
+          type="text"
+          inputmode="numeric"
+          maxlength="6"
+          placeholder="6-digit code"
+          class="w-full px-3.5 py-3 rounded-brand border border-brand-border
+            text-brand-ink text-center text-xl tracking-[0.5em] font-bold
+            placeholder:text-brand-muted/50 placeholder:tracking-normal
+            focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
+        />
+      </div>
+      <button
+        id="btn-verify"
+        onclick="submitRegistration()"
+        class="w-full py-3 rounded-brand bg-brand-gold text-white font-semibold
+          text-sm hover:bg-brand-gold-dark transition-colors">
+        Verify and join IyaLife
+      </button>
+      <button onclick="resendOTP()"
+        class="text-xs text-brand-muted hover:text-brand-teal text-center transition-colors">
+        Resend code
+      </button>
+    </div>
+
+    <!-- Hidden fields -->
+    <input type="hidden" id="ref-code" value={refCode} />
+    <input type="hidden" id="ref-type" value={refType} />
+    <input type="hidden" id="q1-val" />
+    <input type="hidden" id="q2-val" />
+    <input type="hidden" id="q3-val" />
+  </div>
+</AuthLayout>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+
+  declare global {
+    interface Window {
+      selectQ: (group: string, btn: HTMLButtonElement) => void;
+      goStep2: () => Promise<void>;
+      goStep3: () => Promise<void>;
+      resendOTP: () => Promise<void>;
+      submitRegistration: () => Promise<void>;
+    }
+  }
+
+  let currentStep = 1;
+  const answers: Record<string,string> = {};
+
+  function show(id: string) {
+    ["step-1","step-2","step-3"].forEach(s => {
+      const el = document.getElementById(s);
+      if (el) el.classList.toggle("hidden", s !== id);
+    });
+    // Update dots
+    [1,2,3].forEach(i => {
+      const dot = document.getElementById(`step-dot-${i}`);
+      if (dot) {
+        dot.className = `w-2 h-2 rounded-full transition-all ${
+          i === currentStep ? "bg-brand-teal w-6" : "bg-brand-border"
+        }`;
+      }
+    });
+  }
+
+  window.selectQ = (group: string, btn: HTMLButtonElement) => {
+    document.querySelectorAll(`.${group}-opt`).forEach(b => {
+      (b as HTMLElement).dataset.selected = "false";
+      b.classList.remove("border-brand-teal","bg-brand-teal/10","text-brand-teal");
+    });
+    btn.dataset.selected = "true";
+    btn.classList.add("border-brand-teal","bg-brand-teal/10","text-brand-teal");
+    (document.getElementById(`${group}-val`) as HTMLInputElement).value = btn.dataset.value ?? "";
+  };
+
+  window.goStep2 = async () => {
+    const name  = (document.getElementById("full-name") as HTMLInputElement).value.trim();
+    const phone = (document.getElementById("phone") as HTMLInputElement).value.trim();
+    if (!name || !phone) return alert("Please fill in your name and phone number.");
+    currentStep = 2;
+    show("step-2");
+  };
+
+  window.goStep3 = async () => {
+    const q1 = (document.getElementById("q1-val") as HTMLInputElement).value;
+    const q2 = (document.getElementById("q2-val") as HTMLInputElement).value;
+    const q3 = (document.getElementById("q3-val") as HTMLInputElement).value;
+    if (!q1 || !q2 || !q3) return alert("Please answer all three questions.");
+    answers.stage = q1; answers.challenge = q2; answers.help = q3;
+
+    const phone = "+234" + (document.getElementById("phone") as HTMLInputElement).value.trim();
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    if (error) return alert("Could not send code. Please check your number.");
+
+    currentStep = 3;
+    show("step-3");
+  };
+
+  window.resendOTP = async () => {
+    const phone = "+234" + (document.getElementById("phone") as HTMLInputElement).value.trim();
+    await supabase.auth.signInWithOtp({ phone });
+    alert("Code resent.");
+  };
+
+  window.submitRegistration = async () => {
+    const btn   = document.getElementById("btn-verify") as HTMLButtonElement;
+    const otp   = (document.getElementById("otp") as HTMLInputElement).value.trim();
+    const phone = "+234" + (document.getElementById("phone") as HTMLInputElement).value.trim();
+    const name  = (document.getElementById("full-name") as HTMLInputElement).value.trim();
+    const ref   = (document.getElementById("ref-code") as HTMLInputElement).value;
+    const refT  = (document.getElementById("ref-type") as HTMLInputElement).value;
+
+    if (!otp || otp.length < 6) return alert("Please enter the 6-digit code.");
+    btn.textContent = "Verifying…";
+    btn.disabled = true;
+
+    const { data, error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
+    if (error || !data.user) {
+      btn.textContent = "Verify and join IyaLife";
+      btn.disabled = false;
+      return alert("Incorrect code. Please try again.");
+    }
+
+    // Create mother profile — referral_code and member_number are filled in
+    // by the set_mother_defaults trigger (see supabase/sql/003_referral_code_generation.sql)
+    const { error: insertError } = await supabase.from("mothers").insert({
+      id:             data.user.id,
+      full_name:      name,
+      phone,
+      referral_type:  refT,
+      referred_by_code: ref,
+      journey_stage:  answers.stage,
+      challenge:      answers.challenge,
+      help_needed:    answers.help,
+      tier:           "silver",
+    });
+
+    if (insertError) {
+      btn.textContent = "Verify and join IyaLife";
+      btn.disabled = false;
+      return alert("We could not complete your registration. Please try again.");
+    }
+
+    // Fetch the generated referral_code so the account dashboard can show it
+    // immediately without waiting on a fresh query.
+    const { data: newMother } = await supabase
+      .from("mothers")
+      .select("id, referral_code")
+      .eq("id", data.user.id)
+      .single();
+
+    if (newMother?.referral_code) {
+      localStorage.setItem("iyalife-referral-code", newMother.referral_code);
+    }
+
+    // Peer referrers earn ongoing commission — record the relationship.
+    // Advocate referrers earn one-time only and are not tracked here.
+    // Invalid/expired codes should never block registration.
+    if (refT === "peer" && ref) {
+      const { data: referrer } = await supabase
+        .from("mothers")
+        .select("id")
+        .eq("referral_code", ref)
+        .single();
+
+      if (referrer?.id) {
+        await supabase.from("referrals").insert({
+          referrer_id:   referrer.id,
+          referred_id:   data.user.id,
+          referral_type: refT,
+        });
+      }
+      // No matching referrer — silently skip. Registration must still succeed.
+    }
+
+    window.location.href = "/account?welcome=1";
+  };
+
+  show("step-1");
+</script>

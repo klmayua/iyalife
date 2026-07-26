@@ -1,0 +1,174 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import { getProduct, getRelatedProducts } from "../../lib/supabase";
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const product = await getProduct(slug as string);
+
+if (!product) return Astro.redirect("/shop");
+
+const relatedProducts = await getRelatedProducts(product.category, product.id, 4);
+
+const fmt = new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",minimumFractionDigits:0});
+---
+
+<BaseLayout title={`${product.name} — IyaLife`}>
+  <Nav />
+  <main class="max-w-5xl mx-auto px-4 py-8">
+
+    <!-- Breadcrumb -->
+    <nav class="flex gap-2 text-xs text-brand-muted mb-6">
+      <a href="/shop" class="hover:text-brand-teal">Shop</a>
+      <span>/</span>
+      <a href={`/shop?category=${product.category}`}
+        class="hover:text-brand-teal capitalize">
+        {product.category.replace("-"," ")}
+      </a>
+      <span>/</span>
+      <span class="text-brand-ink">{product.name}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+      <!-- Image -->
+      <div class="aspect-square rounded-brand overflow-hidden bg-brand-surface
+        border border-brand-border flex items-center justify-center">
+        {product.image ? (
+          <img src={product.image} alt={product.name}
+            class="w-full h-full object-cover" />
+        ) : (
+          <span class="text-8xl">
+            {product.category === "baby-care" ? "👶" :
+             product.category === "maternal-health" ? "🌿" :
+             product.category === "household" ? "🏠" : "📚"}
+          </span>
+        )}
+      </div>
+
+      <!-- Info -->
+      <div class="flex flex-col gap-5">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-brand-muted font-medium mb-1">
+            {product.category.replace(/-/g," ")}
+          </p>
+          <h1 class="text-2xl font-bold text-brand-teal-dark leading-snug">
+            {product.name}
+          </h1>
+        </div>
+
+        <div class="flex items-baseline gap-3">
+          <span class="text-3xl font-bold text-brand-teal">
+            {fmt.format(product.price)}
+          </span>
+          {product.original_price && (
+            <span class="text-base text-brand-muted line-through">
+              {fmt.format(product.original_price)}
+            </span>
+          )}
+        </div>
+
+        {product.description && (
+          <p class="text-brand-muted text-sm leading-relaxed">{product.description}</p>
+        )}
+
+        <!-- Trust signals -->
+        <div class="flex flex-col gap-2">
+          {["Verified quality",`${product.category === "baby-care" ? "Safe for infants" : "Trusted by mothers"}`, "Eligible for referral earnings"].map(t => (
+            <div class="flex items-center gap-2 text-sm text-brand-ink">
+              <span class="text-brand-teal text-xs">✓</span>
+              {t}
+            </div>
+          ))}
+        </div>
+
+        <!-- Quantity + Add to cart -->
+        <div
+          id="add-to-cart-controls"
+          class="flex gap-3"
+          data-product={JSON.stringify({
+            id: product.id, name: product.name, price: product.price,
+            image: product.image, category: product.category, slug: product.slug,
+          })}
+        >
+          <div class="flex items-center border border-brand-border rounded-brand overflow-hidden">
+            <button
+              id="qty-dec"
+              class="px-3 py-2.5 text-brand-muted hover:text-brand-teal
+                hover:bg-brand-teal/5 transition-colors">−</button>
+            <span id="qty" class="px-4 py-2.5 font-semibold text-brand-ink border-x
+              border-brand-border text-sm">1</span>
+            <button
+              id="qty-inc"
+              class="px-3 py-2.5 text-brand-muted hover:text-brand-teal
+                hover:bg-brand-teal/5 transition-colors">+</button>
+          </div>
+          <button
+            id="add-cart"
+            class="flex-1 py-2.5 rounded-brand bg-brand-teal text-white font-semibold
+              text-sm hover:bg-brand-teal-dark transition-colors shadow-brand">
+            Add to cart
+          </button>
+        </div>
+
+        {product.in_stock === false && (
+          <p class="text-sm text-red-600 font-medium">Currently out of stock</p>
+        )}
+      </div>
+    </div>
+
+    {relatedProducts.length > 0 && (
+      <div class="mt-12">
+        <h2 class="text-lg font-bold text-brand-teal-dark mb-4">Related products</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {relatedProducts.map(p => (
+            <ProductCard
+              id={p.id}
+              name={p.name}
+              price={p.price}
+              image={p.image}
+              category={p.category}
+              slug={p.slug}
+              badge={p.is_founding_deal ? "Founding Deal" : undefined}
+            />
+          ))}
+        </div>
+      </div>
+    )}
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  import { addToCart } from "../../stores/cart";
+
+  const controls = document.getElementById("add-to-cart-controls");
+  const product = JSON.parse(controls?.dataset.product ?? "{}");
+  let qty = 1;
+
+  const qtyLabel = document.getElementById("qty");
+  document.getElementById("qty-dec")?.addEventListener("click", () => {
+    if (qty > 1) { qty--; if (qtyLabel) qtyLabel.textContent = String(qty); }
+  });
+  document.getElementById("qty-inc")?.addEventListener("click", () => {
+    qty++; if (qtyLabel) qtyLabel.textContent = String(qty);
+  });
+  document.getElementById("add-cart")?.addEventListener("click", () => {
+    for (let i = 0; i < qty; i++) {
+      addToCart({ id:product.id, name:product.name, price:product.price,
+        image:product.image, category:product.category, slug:product.slug });
+    }
+    const btn = document.getElementById("add-cart");
+    if (!btn) return;
+    btn.textContent = "Added ✓";
+    btn.classList.replace("bg-brand-teal","bg-green-600");
+    setTimeout(() => {
+      btn.textContent = "Add to cart";
+      btn.classList.replace("bg-green-600","bg-brand-teal");
+    }, 2000);
+  });
+</script>

@@ -1,0 +1,201 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+
+export const prerender = false;
+
+const isWelcome = Astro.url.searchParams.get("welcome") === "1";
+---
+
+<BaseLayout title="My Account — IyaLife">
+  <Nav />
+
+  <!-- Welcome banner (fires on first login after registration) -->
+  {isWelcome && (
+    <div id="welcome-banner"
+      class="bg-brand-teal text-white px-4 py-4 text-center text-sm font-medium">
+      🎉 Welcome to IyaLife. Check your phone — something just arrived for you.
+      <button onclick="document.getElementById('welcome-banner').remove()"
+        class="ml-3 text-white/60 hover:text-white text-xs underline">
+        Dismiss
+      </button>
+    </div>
+  )}
+
+  <main class="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
+
+    <!-- Header (populated by JS) -->
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="text-brand-muted text-sm">Welcome back</p>
+        <h1 id="account-name" class="text-2xl font-bold text-brand-teal-dark">
+          Loading...
+        </h1>
+        <div id="tier-badge" class="mt-1"></div>
+      </div>
+      <a href="/account/earnings"
+        class="flex flex-col items-end px-4 py-3 rounded-brand
+          bg-brand-gold-light border border-brand-gold/30">
+        <span class="text-xs text-brand-muted">Total earned</span>
+        <span id="total-earned" class="text-xl font-bold text-brand-gold-dark">₦0</span>
+      </a>
+    </div>
+
+    <!-- Quick nav -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {[
+        { href:"/shop",             icon:"🛒", label:"Shop" },
+        { href:"/account/orders",   icon:"📦", label:"My Orders" },
+        { href:"/account/earnings", icon:"💛", label:"My Earnings" },
+        { href:"/account/profile",  icon:"👩", label:"Profile" },
+      ].map(item => (
+        <a href={item.href}
+          class="flex flex-col items-center gap-2 p-4 rounded-brand
+            bg-white border border-brand-border hover:border-brand-teal
+            hover:shadow-brand transition-all group">
+          <span class="text-2xl">{item.icon}</span>
+          <span class="text-xs font-semibold text-brand-muted
+            group-hover:text-brand-teal transition-colors">
+            {item.label}
+          </span>
+        </a>
+      ))}
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-3 gap-4">
+      {[
+        { id:"stat-orders",   label:"Orders",     color:"text-brand-teal" },
+        { id:"stat-referrals",label:"Referred",   color:"text-brand-gold-dark" },
+        { id:"stat-pending",  label:"Pending ₦",  color:"text-green-600" },
+      ].map(stat => (
+        <div class="flex flex-col gap-1 p-4 rounded-brand bg-white
+          border border-brand-border text-center">
+          <span id={stat.id}
+            class={`text-2xl font-bold ${stat.color}`}>—</span>
+          <span class="text-xs text-brand-muted">{stat.label}</span>
+        </div>
+      ))}
+    </div>
+
+    <!-- Referral section -->
+    <div class="rounded-brand bg-brand-teal-dark text-white p-6 flex flex-col gap-4">
+      <div>
+        <h2 class="font-bold text-lg">Your invitation link</h2>
+        <p class="text-white/60 text-sm mt-0.5">
+          Share with people you trust. You earn when they order.
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <input
+          id="referral-link"
+          type="text"
+          readonly
+          value=""
+          class="flex-1 px-3 py-2.5 rounded-brand bg-white/10 border border-white/20
+            text-white text-sm font-mono focus:outline-none"
+        />
+        <button
+          onclick="copyLink()"
+          class="px-4 py-2.5 rounded-brand bg-brand-gold text-white text-sm
+            font-semibold hover:bg-brand-gold-dark transition-colors flex-shrink-0">
+          Copy
+        </button>
+      </div>
+      <button
+        onclick="shareWhatsApp()"
+        class="w-full py-3 rounded-brand bg-white/10 border border-white/20
+          text-white font-semibold text-sm hover:bg-white/20 transition-colors
+          flex items-center justify-center gap-2">
+        <span>Share on WhatsApp</span>
+      </button>
+    </div>
+
+    <!-- Recent orders placeholder -->
+    <div>
+      <h2 class="font-bold text-brand-teal-dark mb-4">Recent Orders</h2>
+      <div id="recent-orders"
+        class="rounded-brand border border-dashed border-brand-border p-8
+          text-center text-brand-muted text-sm">
+        No orders yet. <a href="/shop" class="text-brand-teal font-medium">Start shopping</a>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+
+  declare global {
+    interface Window {
+      copyLink: () => void;
+      shareWhatsApp: () => void;
+    }
+  }
+
+  async function loadAccount() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { window.location.href = "/auth/login"; return; }
+
+    const { data: mother } = await supabase
+      .from("mothers")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (!mother) return;
+
+    document.getElementById("account-name")!.textContent = mother.full_name;
+
+    const tierColors: Record<string,string> = {
+      silver: "bg-gray-100 text-gray-600 border-gray-300",
+      gold:   "bg-amber-50 text-amber-700 border-amber-300",
+      diamond:"bg-blue-50 text-blue-700 border-blue-300",
+    };
+    document.getElementById("tier-badge")!.innerHTML =
+      `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+        border ${tierColors[mother.tier] ?? tierColors.silver}">
+        ◆ ${mother.tier.charAt(0).toUpperCase() + mother.tier.slice(1)}
+      </span>`;
+
+    const fmt = (n: number) => new Intl.NumberFormat("en-NG",{
+      style:"currency",currency:"NGN",minimumFractionDigits:0
+    }).format(n);
+
+    document.getElementById("total-earned")!.textContent = fmt(mother.total_earned ?? 0);
+
+    // Prefer the cached code from registration (avoids a query round-trip on
+    // first paint); fall back to Supabase if localStorage is empty or stale.
+    let referralCode = localStorage.getItem("iyalife-referral-code");
+    if (!referralCode) {
+      referralCode = mother.referral_code;
+      if (referralCode) localStorage.setItem("iyalife-referral-code", referralCode);
+    }
+
+    const link = `${window.location.origin}/join/${referralCode}`;
+    (document.getElementById("referral-link") as HTMLInputElement).value = link;
+
+    document.getElementById("stat-orders")!.textContent   = mother.total_orders ?? 0;
+    document.getElementById("stat-referrals")!.textContent= mother.total_referrals ?? 0;
+    document.getElementById("stat-pending")!.textContent  = fmt(mother.pending_earnings ?? 0);
+
+    window.copyLink = () => {
+      navigator.clipboard.writeText(link);
+      const btn = document.querySelector("[onclick='copyLink()']") as HTMLButtonElement;
+      btn.textContent = "Copied!";
+      setTimeout(() => btn.textContent = "Copy", 2000);
+    };
+
+    window.shareWhatsApp = () => {
+      const msg = encodeURIComponent(
+        `I've been part of something I want you to experience. IyaLife. My personal link: ${link}`
+      );
+      window.open(`https://wa.me/?text=${msg}`, "_blank");
+    };
+  }
+
+  loadAccount();
+</script>

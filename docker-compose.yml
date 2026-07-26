@@ -1,0 +1,77 @@
+version: "3.9"
+
+# IyaLife Platform — Docker Compose
+# Runs: web (Astro), admin (React), api (FastAPI), n8n (automation)
+# Nginx reverse proxy routes traffic by subdomain
+
+services:
+
+  # ── Customer-facing web (Astro) ────────────────────────────────────────────
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "4321:4321"
+    environment:
+      - PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - PUBLIC_PAYSTACK_PUBLIC_KEY=${PAYSTACK_PUBLIC_KEY}
+    restart: unless-stopped
+    labels:
+      - "traefik.http.routers.web.rule=Host(`iyalife.com`)"
+
+  # ── Internal admin dashboard (React) ──────────────────────────────────────
+  admin:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_SUPABASE_URL=${SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - VITE_API_URL=https://api.iyalife.com
+    restart: unless-stopped
+    labels:
+      - "traefik.http.routers.admin.rule=Host(`admin.iyalife.com`)"
+
+  # ── FastAPI backend ────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY}
+      - WHATSAPP_TOKEN=${WHATSAPP_TOKEN}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - SECRET_KEY=${SECRET_KEY}
+    restart: unless-stopped
+    labels:
+      - "traefik.http.routers.api.rule=Host(`api.iyalife.com`)"
+
+  # ── n8n Workflow Automation ────────────────────────────────────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=n8n.iyalife.com
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.iyalife.com
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+
+volumes:
+  n8n_data:

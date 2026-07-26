@@ -1,0 +1,11 @@
+{
+  "framework": "astro",
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@iyalife/web",
+  "outputDirectory": "apps/web/dist",
+  "installCommand": "pnpm install",
+  "env": {
+    "PUBLIC_SUPABASE_URL":      "@supabase_url",
+    "PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "PUBLIC_PAYSTACK_PUBLIC_KEY":"@paystack_public_key"
+  }
+}

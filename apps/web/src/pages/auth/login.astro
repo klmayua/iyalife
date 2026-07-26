@@ -1,0 +1,112 @@
+---
+import AuthLayout from "../../layouts/AuthLayout.astro";
+const invalid = Astro.url.searchParams.get("invalid");
+---
+
+<AuthLayout title="Sign In">
+  <div class="flex flex-col gap-5">
+
+    <div class="text-center">
+      <h1 class="text-xl font-bold text-brand-teal-dark">Welcome back</h1>
+      <p class="text-sm text-brand-muted mt-1">Enter your phone to sign in.</p>
+    </div>
+
+    {invalid && (
+      <div class="bg-red-50 border border-red-200 rounded-brand px-4 py-3 text-sm text-red-700">
+        That invitation link is invalid or has expired. Ask a member for a new link.
+      </div>
+    )}
+
+    <div id="step-phone" class="flex flex-col gap-3.5">
+      <div>
+        <label class="block text-sm font-medium text-brand-ink mb-1.5">Phone number</label>
+        <div class="flex gap-2">
+          <span class="flex items-center px-3 rounded-brand border border-brand-border
+            bg-brand-surface text-brand-muted text-sm font-medium">🇳🇬 +234</span>
+          <input
+            id="phone"
+            type="tel"
+            placeholder="8012345678"
+            class="flex-1 px-3.5 py-2.5 rounded-brand border border-brand-border
+              text-brand-ink placeholder:text-brand-muted/50 text-sm
+              focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
+          />
+        </div>
+      </div>
+      <button
+        onclick="sendOTP()"
+        class="w-full py-3 rounded-brand bg-brand-teal text-white font-semibold
+          text-sm hover:bg-brand-teal-dark transition-colors">
+        Send verification code
+      </button>
+    </div>
+
+    <div id="step-otp" class="hidden flex flex-col gap-3.5">
+      <p class="text-sm text-brand-muted text-center">Enter the code sent to your phone.</p>
+      <input
+        id="otp"
+        type="text"
+        inputmode="numeric"
+        maxlength="6"
+        placeholder="6-digit code"
+        class="w-full px-3.5 py-3 rounded-brand border border-brand-border
+          text-brand-ink text-center text-xl tracking-[0.5em] font-bold
+          focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
+      />
+      <button
+        id="btn-verify"
+        onclick="verifyOTP()"
+        class="w-full py-3 rounded-brand bg-brand-teal text-white font-semibold
+          text-sm hover:bg-brand-teal-dark transition-colors">
+        Sign in
+      </button>
+      <button onclick="document.getElementById('step-phone').classList.remove('hidden'); document.getElementById('step-otp').classList.add('hidden')"
+        class="text-xs text-brand-muted hover:text-brand-teal text-center">
+        Change number
+      </button>
+    </div>
+
+    <div class="text-center text-xs text-brand-muted border-t border-brand-border pt-4">
+      Don't have an account?{" "}
+      <span class="text-brand-teal font-medium">You need an invitation to join.</span>
+    </div>
+  </div>
+</AuthLayout>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+
+  declare global {
+    interface Window {
+      sendOTP: () => Promise<void>;
+      verifyOTP: () => Promise<void>;
+    }
+  }
+
+  let phone = "";
+
+  window.sendOTP = async () => {
+    const input = document.getElementById("phone") as HTMLInputElement;
+    phone = "+234" + input.value.trim();
+    if (!phone || phone.length < 11) return alert("Please enter a valid phone number.");
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    if (error) return alert("Could not send code. Please try again.");
+    document.getElementById("step-phone")!.classList.add("hidden");
+    document.getElementById("step-otp")!.classList.remove("hidden");
+  };
+
+  window.verifyOTP = async () => {
+    const btn = document.getElementById("btn-verify") as HTMLButtonElement;
+    const otp = (document.getElementById("otp") as HTMLInputElement).value.trim();
+    if (otp.length < 6) return alert("Please enter the full 6-digit code.");
+    btn.textContent = "Signing in…";
+    btn.disabled = true;
+    const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
+    if (error) {
+      btn.textContent = "Sign in";
+      btn.disabled = false;
+      return alert("Incorrect code. Please try again.");
+    }
+    window.location.href = "/account";
+  };
+</script>

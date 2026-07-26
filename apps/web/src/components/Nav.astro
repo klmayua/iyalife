@@ -1,0 +1,99 @@
+---
+import { Logo } from "@iyalife/ui";
+import CartBadge from "./CartBadge";
+
+const navLinks = [
+  { href: "/shop",      label: "Shop" },
+  { href: "/community", label: "Community" },
+  { href: "/earn",      label: "Earn" },
+  { href: "/about",     label: "About" },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-brand-border">
+  <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+
+    <!-- Logo -->
+    <a href="/" class="flex-shrink-0" aria-label="IyaLife home">
+      <Logo client:load size={36} />
+    </a>
+
+    <!-- Desktop nav -->
+    <nav class="hidden md:flex items-center gap-6">
+      {navLinks.map(link => (
+        <a
+          href={link.href}
+          class={`text-sm font-medium transition-colors hover:text-brand-teal
+            ${currentPath.startsWith(link.href)
+              ? "text-brand-teal"
+              : "text-brand-muted"}`}
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+
+    <!-- Right actions -->
+    <div class="flex items-center gap-3">
+      <a
+        href="/account"
+        class="hidden md:flex items-center gap-1.5 text-sm font-medium
+          text-brand-muted hover:text-brand-teal transition-colors"
+      >
+        Account
+      </a>
+      <CartBadge client:load />
+      <a
+        href="/shop"
+        class="inline-flex items-center justify-center px-4 py-2 rounded-brand
+          bg-brand-teal text-white text-sm font-semibold
+          hover:bg-brand-teal-dark transition-colors shadow-brand"
+      >
+        Shop Now
+      </a>
+
+      <!-- Mobile menu button -->
+      <button
+        id="mobile-menu-btn"
+        class="md:hidden p-2 rounded-md text-brand-muted hover:text-brand-teal
+          hover:bg-brand-teal/8 transition-colors"
+        aria-label="Open menu"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile nav -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-brand-border bg-white">
+    <nav class="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-1">
+      {navLinks.map(link => (
+        <a
+          href={link.href}
+          class="px-3 py-2.5 rounded-md text-sm font-medium text-brand-muted
+            hover:text-brand-teal hover:bg-brand-teal/5 transition-colors"
+        >
+          {link.label}
+        </a>
+      ))}
+      <a
+        href="/account"
+        class="px-3 py-2.5 rounded-md text-sm font-medium text-brand-muted
+          hover:text-brand-teal hover:bg-brand-teal/5 transition-colors"
+      >
+        My Account
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const btn  = document.getElementById("mobile-menu-btn");
+  const menu = document.getElementById("mobile-menu");
+  btn?.addEventListener("click", () => menu?.classList.toggle("hidden"));
+</script>

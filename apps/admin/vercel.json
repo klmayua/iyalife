@@ -1,0 +1,14 @@
+{
+  "framework": "vite",
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@iyalife/admin",
+  "outputDirectory": "apps/admin/dist",
+  "installCommand": "pnpm install",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "env": {
+    "VITE_SUPABASE_URL":      "@supabase_url",
+    "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "VITE_API_URL":           "@api_url"
+  }
+}

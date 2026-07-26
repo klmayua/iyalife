@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+---
+<BaseLayout title="Privacy Policy — IyaLife">
+  <Nav />
+  <main class="max-w-3xl mx-auto px-4 py-12 flex flex-col gap-8">
+    <h1 class="text-2xl font-bold text-brand-teal-dark">Privacy Policy</h1>
+    <p class="text-brand-muted text-sm">Effective July 1, 2026. IyaLife is committed to protecting the privacy of every mother in our community.</p>
+    <div class="flex flex-col gap-6 text-sm text-brand-muted leading-relaxed">
+      <div><h2 class="font-bold text-brand-ink mb-2">What we collect</h2><p>We collect your name, phone number, and optional email address when you register. We collect order information when you purchase. We collect referral relationship data to process your earnings. We collect the answers to your three onboarding questions to personalise your experience.</p></div>
+      <div><h2 class="font-bold text-brand-ink mb-2">How we use it</h2><p>Your data is used to deliver products, process earnings, personalise your experience, and communicate with you via WhatsApp and the platform. Your data is never sold to third parties. It is never used for advertising outside the IyaLife platform.</p></div>
+      <div><h2 class="font-bold text-brand-ink mb-2">Your rights</h2><p>You may request a full export of your data at any time. You may request deletion of your account and all associated data at any time. Contact us at privacy@iyalife.com.</p></div>
+      <div><h2 class="font-bold text-brand-ink mb-2">Data security</h2><p>All data is encrypted in transit and at rest. Payment data is processed by Paystack within their PCI-compliant infrastructure. IyaLife never stores card details.</p></div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

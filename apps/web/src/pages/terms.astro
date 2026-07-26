@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+---
+<BaseLayout title="Terms of Use — IyaLife">
+  <Nav />
+  <main class="max-w-3xl mx-auto px-4 py-12 flex flex-col gap-8">
+    <h1 class="text-2xl font-bold text-brand-teal-dark">Terms of Use</h1>
+    <p class="text-brand-muted text-sm">Effective July 1, 2026.</p>
+    <div class="flex flex-col gap-6 text-sm text-brand-muted leading-relaxed">
+      <div><h2 class="font-bold text-brand-ink mb-2">Membership</h2><p>IyaLife membership is by invitation only during Phase Zero. Each member receives one unique referral link. Referral links may not be publicly broadcast. Each founding member may directly refer a maximum of 20 people during Phase Zero.</p></div>
+      <div><h2 class="font-bold text-brand-ink mb-2">Referral earnings</h2><p>Commissions are earned on purchases made by mothers you directly refer. Rates are set per supplier commercial agreement and may vary. Payouts require BVN or NIN verification and are processed weekly via Paystack. IyaLife reserves the right to withhold payouts pending identity verification.</p></div>
+      <div><h2 class="font-bold text-brand-ink mb-2">Products and delivery</h2><p>IyaLife curates and sells products through supplier partnerships. Delivery is handled by fulfilment partners. Delivery times are estimates. IyaLife is not liable for delays caused by logistics partners or external circumstances.</p></div>
+      <div><h2 class="font-bold text-brand-ink mb-2">Community standards</h2><p>IyaLife's community spaces are for genuine mutual support. Spam, unsolicited promotion, harassment, or behaviour that undermines community trust will result in removal.</p></div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

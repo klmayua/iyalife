@@ -1,0 +1,106 @@
+---
+const year = new Date().getFullYear();
+
+const links = {
+  platform: [
+    { href: "/shop",      label: "Shop" },
+    { href: "/earn",      label: "Earn" },
+    { href: "/community", label: "Community" },
+    { href: "/about",     label: "About" },
+  ],
+  support: [
+    { href: "/contact",   label: "Contact Us" },
+    { href: "/privacy",   label: "Privacy Policy" },
+    { href: "/terms",     label: "Terms of Use" },
+  ],
+  account: [
+    { href: "/auth/login",    label: "Sign In" },
+    { href: "/account",       label: "My Account" },
+    { href: "/account/orders",label: "My Orders" },
+    { href: "/account/earnings", label: "My Earnings" },
+  ],
+};
+---
+
+<footer class="bg-brand-teal-dark text-white">
+  <div class="max-w-5xl mx-auto px-4 py-12">
+
+    <!-- Top row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 pb-10
+      border-b border-white/10">
+
+      <!-- Brand -->
+      <div class="flex flex-col gap-3">
+        <div class="text-2xl font-bold">
+          <span class="text-brand-gold">Iya</span><span class="text-white">Life</span>
+        </div>
+        <p class="text-white/60 text-sm leading-relaxed">
+          The world's most trusted institution for motherhood.
+          Commerce, community, and empowerment — built for African mothers.
+        </p>
+      </div>
+
+      <!-- Platform -->
+      <div>
+        <h4 class="text-xs uppercase tracking-widest text-white/40 font-semibold mb-4">
+          Platform
+        </h4>
+        <ul class="flex flex-col gap-2">
+          {links.platform.map(l => (
+            <li>
+              <a href={l.href}
+                class="text-sm text-white/70 hover:text-white transition-colors">
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div>
+        <h4 class="text-xs uppercase tracking-widest text-white/40 font-semibold mb-4">
+          Support
+        </h4>
+        <ul class="flex flex-col gap-2">
+          {links.support.map(l => (
+            <li>
+              <a href={l.href}
+                class="text-sm text-white/70 hover:text-white transition-colors">
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Account -->
+      <div>
+        <h4 class="text-xs uppercase tracking-widest text-white/40 font-semibold mb-4">
+          My Account
+        </h4>
+        <ul class="flex flex-col gap-2">
+          {links.account.map(l => (
+            <li>
+              <a href={l.href}
+                class="text-sm text-white/70 hover:text-white transition-colors">
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom row -->
+    <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="text-xs text-white/40">
+        © {year} IyaLife. All rights reserved. Founded July 1, 2026.
+      </p>
+      <div class="flex gap-4 text-xs text-white/40">
+        <span>Powered by trust.</span>
+        <span>Built for mothers.</span>
+      </div>
+    </div>
+  </div>
+</footer>

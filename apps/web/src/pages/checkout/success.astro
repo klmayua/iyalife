@@ -1,0 +1,23 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+
+export const prerender = false;
+
+const ref = Astro.url.searchParams.get("ref") ?? "";
+---
+<BaseLayout title="Order Confirmed — IyaLife">
+  <Nav />
+  <main class="max-w-lg mx-auto px-4 py-16 text-center flex flex-col gap-6 items-center">
+    <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center text-4xl">✓</div>
+    <h1 class="text-2xl font-bold text-brand-teal-dark">Your order is confirmed!</h1>
+    <p class="text-brand-muted leading-relaxed">Thank you for ordering with IyaLife. You will receive a confirmation on WhatsApp shortly. Your order will be delivered to the address you provided.</p>
+    {ref && <p class="text-xs text-brand-muted font-mono bg-brand-surface px-3 py-1.5 rounded-md border border-brand-border">Ref: {ref}</p>}
+    <div class="flex flex-col sm:flex-row gap-3 w-full">
+      <a href="/account/orders" class="flex-1 py-3 rounded-brand bg-brand-teal text-white font-semibold text-sm text-center hover:bg-brand-teal-dark transition-colors">View my orders</a>
+      <a href="/shop" class="flex-1 py-3 rounded-brand border border-brand-border text-brand-muted font-semibold text-sm text-center hover:border-brand-teal hover:text-brand-teal transition-colors">Continue shopping</a>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

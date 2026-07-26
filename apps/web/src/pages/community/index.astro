@@ -1,0 +1,61 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+---
+<BaseLayout title="Community — IyaLife">
+  <Nav />
+  <main class="flex flex-col">
+    <section class="bg-gradient-to-br from-brand-teal-dark to-brand-teal text-white px-4 py-16 text-center">
+      <div class="max-w-2xl mx-auto flex flex-col gap-5">
+        <h1 class="text-3xl font-extrabold">You are not alone in this.</h1>
+        <p class="text-white/80 text-lg leading-relaxed">
+          A community of mothers who share, support, and celebrate one another through every stage of the journey.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="https://wa.me/[WHATSAPP_NUMBER]" target="_blank" rel="noopener"
+            class="px-6 py-3.5 rounded-brand bg-brand-gold text-white font-semibold hover:bg-brand-gold-dark transition-colors">
+            Join on WhatsApp
+          </a>
+          <a href="https://t.me/[TELEGRAM_CHANNEL]" target="_blank" rel="noopener"
+            class="px-6 py-3.5 rounded-brand bg-white/10 border border-white/30 text-white font-semibold hover:bg-white/20 transition-colors">
+            Join on Telegram
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white px-4 py-14">
+      <div class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="flex flex-col gap-3 p-5 rounded-brand border border-brand-border hover:shadow-brand transition-shadow">
+          <span class="text-3xl">🤝</span>
+          <h3 class="font-bold text-brand-teal-dark">Real support</h3>
+          <p class="text-sm text-brand-muted leading-relaxed">Ask questions. Share wins. Get honest answers from mothers who have been there.</p>
+        </div>
+        <div class="flex flex-col gap-3 p-5 rounded-brand border border-brand-border hover:shadow-brand transition-shadow">
+          <span class="text-3xl">💡</span>
+          <h3 class="font-bold text-brand-teal-dark">Useful content</h3>
+          <p class="text-sm text-brand-muted leading-relaxed">Health tips, product recommendations, financial advice — curated and community-tested.</p>
+        </div>
+        <div class="flex flex-col gap-3 p-5 rounded-brand border border-brand-border hover:shadow-brand transition-shadow">
+          <span class="text-3xl">💛</span>
+          <h3 class="font-bold text-brand-teal-dark">Earn together</h3>
+          <p class="text-sm text-brand-muted leading-relaxed">Community members refer each other and earn together. Rising tides, rising incomes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-brand-surface px-4 py-14 text-center">
+      <div class="max-w-2xl mx-auto flex flex-col gap-5">
+        <h2 class="text-xl font-bold text-brand-teal-dark">Access is by invitation only.</h2>
+        <p class="text-brand-muted text-sm">
+          IyaLife's community spaces are for verified members. If you have an account, your community links are in your dashboard.
+        </p>
+        <a href="/account" class="self-center px-6 py-3 rounded-brand bg-brand-teal text-white font-semibold hover:bg-brand-teal-dark transition-colors">
+          Go to my account
+        </a>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

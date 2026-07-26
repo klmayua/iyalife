@@ -1,0 +1,57 @@
+---
+interface Props {
+  title?:       string;
+  description?: string;
+  ogImage?:     string;
+}
+const {
+  title       = "IyaLife",
+  description = "The world's most trusted institution for motherhood.",
+  ogImage,
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const resolvedOgImage = ogImage ? new URL(ogImage, Astro.site) : undefined;
+---
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0B555C" />
+    <title>{title} — IyaLife</title>
+    <meta name="description" content={description} />
+
+    <!-- Open Graph -->
+    <meta property="og:title"       content={`${title} — IyaLife`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url"         content={canonicalURL} />
+    <meta property="og:type"        content="website" />
+    <meta name="twitter:card"       content="summary_large_image" />
+    {resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+  </head>
+  <body class="h-full bg-brand-surface font-sans antialiased">
+    <div class="min-h-full flex flex-col items-center justify-center px-4 py-12">
+
+      <!-- Logo -->
+      <a href="/" class="mb-8">
+        <img src="/logo.png" alt="IyaLife" class="h-8 w-auto" />
+      </a>
+
+      <!-- Card -->
+      <div class="w-full max-w-sm">
+        <slot />
+      </div>
+
+      <!-- Footer link -->
+      <p class="mt-8 text-xs text-brand-muted text-center">
+        The world's most trusted institution for motherhood.
+      </p>
+    </div>
+  </body>
+</html>

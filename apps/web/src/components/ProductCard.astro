@@ -1,0 +1,67 @@
+---
+interface Props {
+  id:       string;
+  name:     string;
+  price:    number;
+  image?:   string;
+  category: string;
+  slug:     string;
+  badge?:   string;
+}
+const { name, price, image, category, slug, badge } = Astro.props;
+
+const formatted = new Intl.NumberFormat("en-NG", {
+  style: "currency", currency: "NGN", minimumFractionDigits: 0,
+}).format(price);
+
+const categoryLabel: Record<string,string> = {
+  "baby-care":       "Baby & Infant Care",
+  "maternal-health": "Maternal Health",
+  "household":       "Household Essentials",
+  "child-development":"Child Development",
+};
+---
+
+<a href={`/shop/${slug}`}
+  class="group flex flex-col bg-white rounded-brand border border-brand-border
+    hover:shadow-brand hover:border-brand-teal/40 transition-all overflow-hidden">
+
+  <!-- Image -->
+  <div class="relative aspect-square bg-brand-surface overflow-hidden">
+    {image ? (
+      <img src={image} alt={name}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+    ) : (
+      <div class="w-full h-full flex items-center justify-center text-5xl">
+        {category === "baby-care" ? "👶" :
+         category === "maternal-health" ? "🌿" :
+         category === "household" ? "🏠" : "📚"}
+      </div>
+    )}
+    {badge && (
+      <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full
+        bg-brand-gold text-white text-xs font-semibold">
+        {badge}
+      </span>
+    )}
+  </div>
+
+  <!-- Info -->
+  <div class="p-3 flex flex-col gap-1.5">
+    <span class="text-[10px] uppercase tracking-wide text-brand-muted font-medium">
+      {categoryLabel[category] ?? category}
+    </span>
+    <h3 class="text-sm font-semibold text-brand-ink leading-snug
+      group-hover:text-brand-teal transition-colors line-clamp-2">
+      {name}
+    </h3>
+    <div class="flex items-center justify-between mt-1">
+      <span class="text-brand-teal font-bold text-base">{formatted}</span>
+      <button
+        class="text-xs font-semibold px-3 py-1.5 rounded-md
+          bg-brand-teal text-white hover:bg-brand-teal-dark transition-colors">
+        Add
+      </button>
+    </div>
+  </div>
+</a>

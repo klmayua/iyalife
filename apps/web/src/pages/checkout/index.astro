@@ -1,0 +1,210 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+
+export const prerender = false;
+
+const paystackKey = import.meta.env.PUBLIC_PAYSTACK_PUBLIC_KEY;
+---
+
+<BaseLayout title="Checkout — IyaLife">
+  <Nav />
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-brand-teal-dark mb-8">Checkout</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+      <!-- Delivery details -->
+      <div class="flex flex-col gap-5">
+        <h2 class="font-bold text-brand-ink">Delivery Information</h2>
+
+        <div class="flex flex-col gap-3.5">
+          <div>
+            <label class="block text-sm font-medium text-brand-ink mb-1.5">Full name</label>
+            <input id="co-name" type="text"
+              class="w-full px-3.5 py-2.5 rounded-brand border border-brand-border
+                text-sm text-brand-ink focus:outline-none focus:border-brand-teal
+                focus:ring-2 focus:ring-brand-teal/20" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-ink mb-1.5">Phone</label>
+            <input id="co-phone" type="tel"
+              class="w-full px-3.5 py-2.5 rounded-brand border border-brand-border
+                text-sm text-brand-ink focus:outline-none focus:border-brand-teal
+                focus:ring-2 focus:ring-brand-teal/20" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-ink mb-1.5">Delivery address</label>
+            <textarea id="co-address" rows="3"
+              class="w-full px-3.5 py-2.5 rounded-brand border border-brand-border
+                text-sm text-brand-ink focus:outline-none focus:border-brand-teal
+                focus:ring-2 focus:ring-brand-teal/20 resize-none">
+            </textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-ink mb-1.5">State</label>
+            <select id="co-state"
+              class="w-full px-3.5 py-2.5 rounded-brand border border-brand-border
+                text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-teal">
+              <option value="">Select state</option>
+              {["Lagos","Abuja","Kano","Ibadan","Port Harcourt","Benin City","Kaduna","Ogun","Oyo","Rivers"].map(s => (
+                <option value={s.toLowerCase()}>{s}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <!-- Coupon -->
+        <div class="flex gap-2">
+          <input id="co-coupon" type="text" placeholder="Founding member coupon code"
+            class="flex-1 px-3.5 py-2.5 rounded-brand border border-brand-border
+              text-sm text-brand-ink focus:outline-none focus:border-brand-teal" />
+          <button onclick="applyCoupon()"
+            class="px-4 py-2.5 rounded-brand border border-brand-teal text-brand-teal
+              text-sm font-medium hover:bg-brand-teal/5 transition-colors flex-shrink-0">
+            Apply
+          </button>
+        </div>
+        <div id="coupon-msg" class="hidden text-xs"></div>
+      </div>
+
+      <!-- Order summary -->
+      <div class="flex flex-col gap-4">
+        <h2 class="font-bold text-brand-ink">Order Summary</h2>
+        <div id="checkout-items" class="flex flex-col gap-3"></div>
+
+        <div class="rounded-brand border border-brand-border p-4 flex flex-col gap-2 text-sm">
+          <div class="flex justify-between text-brand-muted">
+            <span>Subtotal</span><span id="co-subtotal">₦0</span>
+          </div>
+          <div id="co-discount-row" class="hidden flex justify-between text-green-600">
+            <span>Discount</span><span id="co-discount">-₦0</span>
+          </div>
+          <div class="flex justify-between text-brand-muted">
+            <span>Delivery</span><span>Calculated per location</span>
+          </div>
+          <div class="border-t border-brand-border pt-2 flex justify-between font-bold">
+            <span class="text-brand-ink">Total</span>
+            <span id="co-total" class="text-brand-teal text-base">₦0</span>
+          </div>
+        </div>
+
+        <button
+          id="pay-btn"
+          data-paystack-key={paystackKey}
+          onclick="initPaystack()"
+          class="w-full py-3.5 rounded-brand bg-brand-teal text-white font-semibold
+            hover:bg-brand-teal-dark transition-colors shadow-brand">
+          Pay with Paystack
+        </button>
+
+        <p class="text-xs text-brand-muted text-center">
+          Secure payment powered by Paystack. Your card details are never stored by IyaLife.
+        </p>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+  import { cartItems, cartTotal, clearCart, formatPrice } from "../../stores/cart";
+  import { supabase } from "../../lib/supabase";
+
+  const paystackKey = (document.getElementById("pay-btn") as HTMLButtonElement).dataset.paystackKey ?? "";
+
+  declare global {
+    interface Window {
+      applyCoupon: () => Promise<void>;
+      initPaystack: () => Promise<void>;
+      PaystackPop: any;
+    }
+  }
+
+  let discountAmount = 0;
+  let couponCode = "";
+
+  function renderItems() {
+    const items = cartItems.get();
+    const total = cartTotal.get();
+    document.getElementById("co-subtotal")!.textContent = formatPrice(total);
+    document.getElementById("co-total")!.textContent = formatPrice(total - discountAmount);
+    document.getElementById("checkout-items")!.innerHTML = items.map(i =>
+      `<div class="flex items-center justify-between gap-3 text-sm">
+        <span class="text-brand-ink font-medium line-clamp-1 flex-1">${i.name} ×${i.quantity}</span>
+        <span class="text-brand-teal font-semibold flex-shrink-0">${formatPrice(i.price * i.quantity)}</span>
+      </div>`
+    ).join("");
+  }
+
+  window.applyCoupon = async () => {
+    couponCode = (document.getElementById("co-coupon") as HTMLInputElement).value.trim();
+    const msg = document.getElementById("coupon-msg")!;
+    const { data } = await supabase
+      .from("coupons")
+      .select("*")
+      .eq("code", couponCode)
+      .eq("used", false)
+      .single();
+    msg.classList.remove("hidden");
+    if (data) {
+      const total = cartTotal.get();
+      discountAmount = Math.round(total * (data.discount_pct / 100));
+      msg.className = "text-xs text-green-600";
+      msg.textContent = `✓ ${data.discount_pct}% discount applied — ${formatPrice(discountAmount)} off`;
+      document.getElementById("co-discount-row")!.classList.remove("hidden");
+      document.getElementById("co-discount")!.textContent = `-${formatPrice(discountAmount)}`;
+      document.getElementById("co-total")!.textContent = formatPrice(cartTotal.get() - discountAmount);
+    } else {
+      msg.className = "text-xs text-red-500";
+      msg.textContent = "Invalid or already used coupon code.";
+      discountAmount = 0;
+    }
+  };
+
+  window.initPaystack = async () => {
+    const { data:{user} } = await supabase.auth.getUser();
+    if (!user) { window.location.href = "/auth/login"; return; }
+
+    const name    = (document.getElementById("co-name") as HTMLInputElement).value.trim();
+    const phone   = (document.getElementById("co-phone") as HTMLInputElement).value.trim();
+    const address = (document.getElementById("co-address") as HTMLTextAreaElement).value.trim();
+
+    if (!name || !phone || !address) return alert("Please fill in all delivery details.");
+
+    const total    = cartTotal.get() - discountAmount;
+    const items    = cartItems.get();
+    const { data:mother } = await supabase.from("mothers").select("email").eq("id",user.id).single();
+
+    const handler = (window as any).PaystackPop.setup({
+      key: paystackKey,
+      email: mother?.email ?? `${user.id}@iyalife.com`,
+      amount: total * 100,
+      currency: "NGN",
+      ref: `IYA-${Date.now()}`,
+      metadata: { name, phone, address, coupon: couponCode, items: JSON.stringify(items) },
+      callback: async (response: any) => {
+        await supabase.from("orders").insert({
+          mother_id: user.id,
+          status: "confirmed",
+          total_amount: total,
+          items,
+          paystack_reference: response.reference,
+          delivery_name: name,
+          delivery_phone: phone,
+          delivery_address: address,
+          coupon_code: couponCode || null,
+        });
+        clearCart();
+        window.location.href = `/checkout/success?ref=${response.reference}`;
+      },
+      onClose: () => {},
+    });
+    handler.openIframe();
+  };
+
+  cartItems.subscribe(renderItems);
+  renderItems();
+</script>

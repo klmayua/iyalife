@@ -1,0 +1,126 @@
+---
+import AuthLayout from "../../layouts/AuthLayout.astro";
+import { supabase } from "../../lib/supabase";
+
+export const prerender = false;
+
+const { code } = Astro.params;
+
+// Look up referrer from code
+const { data: referrer } = await supabase
+  .from("mothers")
+  .select("id, full_name, tier, referral_code")
+  .eq("referral_code", code)
+  .single();
+
+// Invalid code
+if (!referrer) {
+  return Astro.redirect("/auth/login?invalid=1");
+}
+
+const firstName = referrer.full_name.split(" ")[0];
+
+// Referral type detection from URL param (peer | advocate)
+const type = Astro.url.searchParams.get("t") ?? "peer";
+const isPeer = type !== "advocate";
+
+// Founding circle social proof — never show the gap to 1,000, just the growing count.
+const { count: memberCount } = await supabase
+  .from("mothers")
+  .select("id", { count: "exact", head: true });
+const displayMemberCount = Math.min(memberCount ?? 0, 1000);
+
+// Founding circle cap — 20 direct referrals per member
+const { count: referralCount } = await supabase
+  .from("referrals")
+  .select("id", { count: "exact", head: true })
+  .eq("referrer_id", referrer.id);
+const capReached = (referralCount ?? 0) >= 20;
+
+const tierBadgeStyles: Record<string, string> = {
+  silver:  "bg-gray-100 text-gray-700 border-gray-300",
+  gold:    "bg-amber-50 text-amber-700 border-amber-300",
+  diamond: "bg-blue-50 text-blue-700 border-blue-300",
+};
+const tierBadgeStyle = tierBadgeStyles[referrer.tier] ?? tierBadgeStyles.silver;
+---
+
+<AuthLayout
+  title={`${firstName} invited you to IyaLife`}
+  description="IyaLife is an invitation-only community for mothers."
+  ogImage="/icons/icon.svg"
+>
+  <div class="flex flex-col gap-6">
+
+    <!-- Header -->
+    <div class="text-center flex flex-col gap-3">
+      <div class="text-4xl">🤍</div>
+      <h1 class="text-2xl font-bold text-brand-teal-dark leading-tight">
+        {isPeer
+          ? `${firstName} thinks you belong here.`
+          : `${firstName} is gifting you access to IyaLife.`}
+      </h1>
+      <p class="text-brand-muted text-sm leading-relaxed">
+        {isPeer
+          ? "IyaLife is an invitation-only community for mothers. You've been personally invited."
+          : "IyaLife is built for mothers. Someone who cares about you wants you to have access."}
+      </p>
+      {displayMemberCount > 0 && (
+        <p class="text-xs text-brand-gold font-semibold">
+          Join {displayMemberCount} founding members
+        </p>
+      )}
+    </div>
+
+    <!-- Brand mark -->
+    <div class="flex justify-center py-2">
+      <div class="w-16 h-px bg-brand-gold"></div>
+    </div>
+
+    {capReached ? (
+      <div class="rounded-brand bg-brand-surface border border-brand-border p-4">
+        <p class="text-sm text-brand-ink leading-relaxed text-center">
+          This invitation link is no longer active. The member who shared it
+          has reached their founding circle limit. Ask them to connect you
+          with another member.
+        </p>
+      </div>
+    ) : (
+      <div class="flex flex-col gap-3">
+        <a
+          href={`/auth/register?ref=${code}&t=${type}`}
+          class="w-full flex items-center justify-center py-3.5 px-6
+            rounded-brand bg-brand-teal text-white font-semibold text-base
+            hover:bg-brand-teal-dark transition-colors shadow-brand">
+          Accept the invitation
+        </a>
+        <p class="text-center text-xs text-brand-muted">
+          Already a member?{" "}
+          <a href="/auth/login" class="text-brand-teal font-medium hover:underline">
+            Sign in
+          </a>
+        </p>
+      </div>
+    )}
+
+    <!-- Referral signal -->
+    <div class="rounded-brand bg-brand-surface border border-brand-border p-4
+      flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-brand-teal-light flex items-center
+        justify-center text-brand-teal font-bold text-sm flex-shrink-0">
+        {firstName.charAt(0)}
+      </div>
+      <div class="flex flex-col gap-1">
+        <p class="text-xs text-brand-muted">Invited by</p>
+        <p class="text-sm font-semibold text-brand-ink">{referrer.full_name}</p>
+        <span class={`inline-flex items-center w-fit px-2.5 py-0.5 rounded-full text-xs font-semibold border capitalize ${tierBadgeStyle}`}>
+          ◆ {referrer.tier} Member
+        </span>
+      </div>
+    </div>
+
+    <p class="text-center text-[11px] text-brand-muted/60">
+      IyaLife is currently available by invitation only.
+    </p>
+  </div>
+</AuthLayout>

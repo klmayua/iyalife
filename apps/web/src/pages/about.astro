@@ -1,0 +1,40 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+---
+<BaseLayout title="About — IyaLife">
+  <Nav />
+  <main class="max-w-3xl mx-auto px-4 py-14 flex flex-col gap-10">
+    <div class="flex flex-col gap-4">
+      <h1 class="text-3xl font-bold text-brand-teal-dark">About IyaLife</h1>
+      <p class="text-brand-muted leading-relaxed">
+        IyaLife is a motherhood-centered commerce, community, and empowerment institution.
+        It was not built as a shopping app. It was built because one person watched someone
+        they love navigate motherhood without the support she deserved — and decided that
+        was a system problem worth solving.
+      </p>
+    </div>
+    <div class="rounded-brand bg-brand-gold-light border border-brand-gold/30 p-6">
+      <p class="text-brand-gold-dark font-semibold italic text-lg leading-relaxed">
+        "Motherhood is infrastructure, not sentiment. Every society depends on it.
+        Few societies invest in it proportionate to its value."
+      </p>
+      <p class="text-brand-muted text-sm mt-3">— IyaLife Founding Manifesto</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      {[
+        { title:"The mission", body:"To build the world's most trusted institution for motherhood — combining commerce, community, healthcare, education, and technology into one ecosystem." },
+        { title:"The model",   body:"Asset-light, trust-first commerce. IyaLife does not own inventory or logistics. It owns relationships, trust, and the experience that makes mothers return." },
+        { title:"The guiding principle", body:"Every decision IyaLife makes must answer one question: does this make motherhood more secure, more supported, more prosperous?" },
+        { title:"Phase Zero", body:"IyaLife is currently in Phase Zero — building its founding community through invitation only. 1,000 founding members. Then the world." },
+      ].map(s => (
+        <div class="flex flex-col gap-2 p-5 rounded-brand border border-brand-border">
+          <h3 class="font-bold text-brand-teal-dark">{s.title}</h3>
+          <p class="text-sm text-brand-muted leading-relaxed">{s.body}</p>
+        </div>
+      ))}
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

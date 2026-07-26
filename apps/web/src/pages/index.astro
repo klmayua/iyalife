@@ -1,0 +1,189 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Nav from "../components/Nav.astro";
+---
+
+<BaseLayout>
+  <Nav />
+
+  <main>
+    <!-- HERO -->
+    <section class="bg-gradient-to-br from-brand-teal-dark via-brand-teal to-brand-teal/80
+      text-white px-4 py-16 md:py-24">
+      <div class="max-w-3xl mx-auto text-center flex flex-col gap-6">
+
+        <span class="inline-block mx-auto px-3 py-1 rounded-full
+          bg-white/10 border border-white/20 text-sm font-medium text-white/90">
+          Built for mothers. Trusted by mothers.
+        </span>
+
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
+          Everything a mother needs.<br />
+          <span class="text-brand-gold">One trusted place.</span>
+        </h1>
+
+        <p class="text-lg text-white/80 max-w-xl mx-auto leading-relaxed">
+          Affordable products, real community, and the opportunity to earn
+          from the trust you've already built. IyaLife is built around you.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="/shop"
+            class="inline-flex items-center justify-center px-6 py-3.5 rounded-brand
+              bg-brand-gold text-white font-semibold text-base
+              hover:bg-brand-gold-dark transition-colors shadow-gold">
+            Start Shopping
+          </a>
+          <a href="/earn"
+            class="inline-flex items-center justify-center px-6 py-3.5 rounded-brand
+              bg-white/10 border border-white/30 text-white font-semibold text-base
+              hover:bg-white/20 transition-colors">
+            Earn with IyaLife
+          </a>
+        </div>
+
+        <p class="text-sm text-white/60">
+          Join the founding community — free to join, always.
+        </p>
+      </div>
+    </section>
+
+    <!-- VALUE PROPS -->
+    <section class="px-4 py-12 bg-white">
+      <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">
+        {[
+          {
+            icon: "🛒",
+            title: "Trusted Products",
+            body: "Curated essentials for every stage of motherhood — baby care, maternal health, household needs.",
+          },
+          {
+            icon: "💛",
+            title: "Real Earnings",
+            body: "Refer other mothers and earn real income on every purchase they make. Your trust, rewarded.",
+          },
+          {
+            icon: "🤝",
+            title: "True Community",
+            body: "Connect with mothers who understand the journey. Share, support, and grow together.",
+          },
+        ].map(card => (
+          <div class="flex flex-col gap-3 p-5 rounded-brand border border-brand-border
+            hover:shadow-brand transition-shadow">
+            <span class="text-3xl">{card.icon}</span>
+            <h3 class="font-semibold text-brand-teal-dark text-base">{card.title}</h3>
+            <p class="text-sm text-brand-muted leading-relaxed">{card.body}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- SHOP BY CATEGORY -->
+    <section class="px-4 py-12 bg-brand-surface">
+      <div class="max-w-5xl mx-auto flex flex-col gap-8">
+        <div class="text-center flex flex-col gap-2">
+          <h2 class="text-2xl md:text-3xl font-bold text-brand-teal-dark">
+            Shop by Category
+          </h2>
+          <p class="text-brand-muted">Everything curated for your journey.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Baby & Infant Care",      emoji: "👶", href: "/shop/baby-care" },
+            { label: "Maternal Health",          emoji: "🌿", href: "/shop/maternal-health" },
+            { label: "Household Essentials",     emoji: "🏠", href: "/shop/household" },
+            { label: "Child Development",        emoji: "📚", href: "/shop/child-development" },
+          ].map(cat => (
+            <a href={cat.href}
+              class="flex flex-col items-center gap-3 p-5 rounded-brand
+                bg-white border border-brand-border
+                hover:border-brand-teal hover:shadow-brand transition-all group">
+              <span class="text-4xl">{cat.emoji}</span>
+              <span class="text-sm font-medium text-brand-ink text-center
+                group-hover:text-brand-teal transition-colors">
+                {cat.label}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- EARN SECTION -->
+    <section class="px-4 py-14 bg-brand-gold-light border-y border-brand-gold/20">
+      <div class="max-w-3xl mx-auto text-center flex flex-col gap-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-brand-gold-dark">
+          Turn trust into income.
+        </h2>
+        <p class="text-brand-muted leading-relaxed">
+          You already recommend products to other mothers every day.
+          IyaLife pays you for it. Start as Silver, grow to Gold, reach Diamond —
+          the more you share, the more you earn.
+        </p>
+        <div class="flex justify-center gap-3 flex-wrap">
+          {[
+            { tier: "◆ Silver", desc: "Start earning",      color: "text-gray-600 bg-gray-100 border-gray-300" },
+            { tier: "◆ Gold",   desc: "Consistent earner",  color: "text-brand-gold-dark bg-brand-gold-light border-brand-gold/40" },
+            { tier: "◆ Diamond",desc: "Community anchor",   color: "text-blue-700 bg-blue-50 border-blue-200" },
+          ].map(t => (
+            <div class={`px-4 py-2.5 rounded-full border text-sm font-semibold flex flex-col items-center gap-0.5 ${t.color}`}>
+              <span>{t.tier}</span>
+              <span class="text-xs font-normal opacity-70">{t.desc}</span>
+            </div>
+          ))}
+        </div>
+        <a href="/earn"
+          class="inline-flex items-center justify-center self-center px-6 py-3.5
+            rounded-brand bg-brand-gold text-white font-semibold
+            hover:bg-brand-gold-dark transition-colors shadow-gold">
+          Learn How to Earn
+        </a>
+      </div>
+    </section>
+
+    <!-- COMMUNITY CTA -->
+    <section class="px-4 py-14 bg-white">
+      <div class="max-w-3xl mx-auto text-center flex flex-col gap-5">
+        <h2 class="text-2xl font-bold text-brand-teal-dark">
+          You are not alone in this.
+        </h2>
+        <p class="text-brand-muted leading-relaxed">
+          Join a community of mothers who share, support, and celebrate one another
+          through every stage of the journey.
+        </p>
+        <a href="/community"
+          class="inline-flex items-center justify-center self-center px-6 py-3.5
+            rounded-brand bg-brand-teal text-white font-semibold
+            hover:bg-brand-teal-dark transition-colors shadow-brand">
+          Join the Community
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-brand-teal-dark text-white px-4 py-10">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-6
+      justify-between items-start md:items-center">
+      <div class="flex flex-col gap-1">
+        <span class="font-bold text-lg">
+          <span class="text-brand-gold">Iya</span>Life
+        </span>
+        <span class="text-white/60 text-sm">The world's most trusted institution for motherhood.</span>
+      </div>
+      <nav class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/70">
+        <a href="/shop"      class="hover:text-white transition-colors">Shop</a>
+        <a href="/earn"      class="hover:text-white transition-colors">Earn</a>
+        <a href="/community" class="hover:text-white transition-colors">Community</a>
+        <a href="/about"     class="hover:text-white transition-colors">About</a>
+        <a href="/contact"   class="hover:text-white transition-colors">Contact</a>
+        <a href="/privacy"   class="hover:text-white transition-colors">Privacy</a>
+      </nav>
+    </div>
+    <div class="max-w-5xl mx-auto mt-8 pt-6 border-t border-white/10
+      text-xs text-white/40 text-center">
+      © {new Date().getFullYear()} IyaLife. All rights reserved.
+    </div>
+  </footer>
+</BaseLayout>

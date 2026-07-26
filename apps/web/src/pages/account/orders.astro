@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+
+export const prerender = false;
+---
+<BaseLayout title="My Orders — IyaLife">
+  <Nav />
+  <main class="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-brand-teal-dark">My Orders</h1>
+      <a href="/account" class="text-sm text-brand-muted hover:text-brand-teal">← Account</a>
+    </div>
+    <div id="orders-list" class="flex flex-col gap-4">
+      <div class="rounded-brand border border-dashed border-brand-border p-12 text-center text-brand-muted text-sm">
+        Loading your orders...
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+<script>
+  import { supabase } from "../../lib/supabase";
+  async function load() {
+    const { data:{user} } = await supabase.auth.getUser();
+    if (!user) { window.location.href="/auth/login"; return; }
+    const { data: orders } = await supabase
+      .from("orders").select("*").eq("mother_id", user.id)
+      .order("created_at", { ascending: false });
+    const fmt = (n: number) => new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",minimumFractionDigits:0}).format(n);
+    const statusColors: Record<string,string> = {
+      pending:"bg-amber-50 text-amber-700 border-amber-200",
+      confirmed:"bg-blue-50 text-blue-700 border-blue-200",
+      delivered:"bg-green-50 text-green-700 border-green-200",
+      cancelled:"bg-red-50 text-red-600 border-red-200",
+    };
+    const el = document.getElementById("orders-list")!;
+    if (!orders || orders.length === 0) {
+      el.innerHTML = `<div class="rounded-brand border border-dashed border-brand-border p-12 text-center text-brand-muted text-sm">No orders yet. <a href="/shop" class="text-brand-teal font-medium">Start shopping</a></div>`;
+      return;
+    }
+    el.innerHTML = orders.map(o => `
+      <div class="rounded-brand border border-brand-border bg-white p-5 flex items-center justify-between gap-4">
+        <div class="flex flex-col gap-1">
+          <p class="text-xs text-brand-muted">${new Date(o.created_at).toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"})}</p>
+          <p class="font-semibold text-brand-ink">Order #${o.id.slice(0,8).toUpperCase()}</p>
+          <p class="text-sm text-brand-muted">${(o.items ?? []).length} item${(o.items?.length ?? 1) !== 1 ? "s" : ""}</p>
+        </div>
+        <div class="flex flex-col items-end gap-2">
+          <span class="font-bold text-brand-teal-dark">${fmt(o.total_amount ?? 0)}</span>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusColors[o.status] ?? statusColors.pending}">${o.status}</span>
+        </div>
+      </div>`).join("");
+  }
+  load();
+</script>
