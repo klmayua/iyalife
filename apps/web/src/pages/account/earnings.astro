@@ -2,12 +2,24 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
+import { getDemoPersonaKeyFromCookieHeader } from "../../lib/demoPersonas";
 
 export const prerender = false;
+
+const demoPersonaKey = getDemoPersonaKeyFromCookieHeader(Astro.cookies.get("iyalife_demo")?.value);
 ---
 
 <BaseLayout title="My Earnings — IyaLife">
   <Nav />
+  {demoPersonaKey && (
+    <div class="bg-brand-gold text-white px-4 py-2.5 text-center text-sm font-medium flex items-center justify-center gap-3">
+      <span>👋 You're viewing a demo account.</span>
+      <a href="/auth/login" onclick="document.cookie='iyalife_demo=; path=/; max-age=0'"
+        class="text-white underline decoration-white/50 hover:decoration-white">
+        Exit demo
+      </a>
+    </div>
+  )}
   <main class="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
 
     <!-- Header -->
@@ -131,29 +143,40 @@ export const prerender = false;
 
 <script>
   import { supabase } from "../../lib/supabase";
+  import { getDemoPersonaKeyFromClient, DEMO_PERSONAS } from "../../lib/demoPersonas";
 
   const fmt = (n: number) => new Intl.NumberFormat("en-NG",{
     style:"currency",currency:"NGN",minimumFractionDigits:0
   }).format(n);
 
   async function load() {
-    const { data:{user} } = await supabase.auth.getUser();
-    if (!user) { window.location.href="/auth/login"; return; }
+    const demoKey = getDemoPersonaKeyFromClient();
+    let mother, referrals;
 
-    const { data: mother } = await supabase
-      .from("mothers").select("*").eq("id", user.id).single();
+    if (demoKey) {
+      mother = DEMO_PERSONAS[demoKey];
+      referrals = mother.referrals;
+    } else {
+      const { data:{user} } = await supabase.auth.getUser();
+      if (!user) { window.location.href="/auth/login"; return; }
+
+      const { data: m } = await supabase
+        .from("mothers").select("*").eq("id", user.id).single();
+      mother = m;
+      if (!mother) return;
+
+      const { data: r } = await supabase
+        .from("referrals")
+        .select("*, referred:referred_id(full_name, total_orders, created_at)")
+        .eq("referrer_id", user.id)
+        .order("created_at", { ascending: false });
+      referrals = r;
+    }
     if (!mother) return;
 
     document.getElementById("earn-lifetime")!.textContent = fmt(mother.total_earned ?? 0);
     document.getElementById("earn-pending")!.textContent  = fmt(mother.pending_earnings ?? 0);
     document.getElementById("earn-paid")!.textContent     = fmt(mother.paid_out ?? 0);
-
-    // Load referral network
-    const { data: referrals } = await supabase
-      .from("referrals")
-      .select("*, referred:referred_id(full_name, total_orders, created_at)")
-      .eq("referrer_id", user.id)
-      .order("created_at", { ascending: false });
 
     document.getElementById("earn-network")!.textContent =
       String(referrals?.length ?? 0);
@@ -198,11 +221,19 @@ export const prerender = false;
         const btn = document.getElementById("payout-btn-request") as HTMLButtonElement;
         btn.classList.remove("hidden");
         btn.addEventListener("click", async () => {
+          const msg = document.getElementById("payout-message")!;
+
+          if (demoKey) {
+            msg.textContent = "This is a demo account — real payouts aren't available here.";
+            msg.className = "text-xs text-center font-medium text-brand-teal";
+            msg.classList.remove("hidden");
+            return;
+          }
+
           btn.disabled = true;
           btn.textContent = "Requesting…";
           const res = await fetch("/api/request-payout", { method: "POST" });
           const body = await res.json();
-          const msg = document.getElementById("payout-message")!;
           msg.textContent = res.ok ? body.message : body.error;
           msg.className = `text-xs text-center font-medium ${res.ok ? "text-brand-teal" : "text-red-600"}`;
           msg.classList.remove("hidden");
@@ -226,14 +257,18 @@ export const prerender = false;
     const nextRenewal = new Date(lastRenewal);
     nextRenewal.setDate(nextRenewal.getDate() + 30);
 
-    const { count: ordersInWindow } = await supabase
-      .from("orders").select("id", { count: "exact", head: true })
-      .eq("mother_id", user.id).gte("created_at", lastRenewal.toISOString());
-    const { count: referralsInWindow } = await supabase
-      .from("referrals").select("id", { count: "exact", head: true })
-      .eq("referrer_id", user.id).gte("created_at", lastRenewal.toISOString());
-
-    const conditionMet = (ordersInWindow ?? 0) > 0 || (referralsInWindow ?? 0) > 0;
+    let conditionMet: boolean;
+    if (demoKey) {
+      conditionMet = mother.renewalConditionMet;
+    } else {
+      const { count: ordersInWindow } = await supabase
+        .from("orders").select("id", { count: "exact", head: true })
+        .eq("mother_id", mother.id).gte("created_at", lastRenewal.toISOString());
+      const { count: referralsInWindow } = await supabase
+        .from("referrals").select("id", { count: "exact", head: true })
+        .eq("referrer_id", mother.id).gte("created_at", lastRenewal.toISOString());
+      conditionMet = (ordersInWindow ?? 0) > 0 || (referralsInWindow ?? 0) > 0;
+    }
     const daysUntilRenewal = Math.ceil((nextRenewal.getTime() - now.getTime()) / 86400000);
 
     const dateFmt = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });

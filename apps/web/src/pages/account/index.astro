@@ -2,14 +2,27 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
+import { getDemoPersonaKeyFromCookieHeader } from "../../lib/demoPersonas";
 
 export const prerender = false;
 
 const isWelcome = Astro.url.searchParams.get("welcome") === "1";
+const demoPersonaKey = getDemoPersonaKeyFromCookieHeader(Astro.cookies.get("iyalife_demo")?.value);
 ---
 
 <BaseLayout title="My Account — IyaLife">
   <Nav />
+
+  <!-- Demo mode banner -->
+  {demoPersonaKey && (
+    <div class="bg-brand-gold text-white px-4 py-2.5 text-center text-sm font-medium flex items-center justify-center gap-3">
+      <span>👋 You're viewing a demo account.</span>
+      <a href="/auth/login" onclick="document.cookie='iyalife_demo=; path=/; max-age=0'"
+        class="text-white underline decoration-white/50 hover:decoration-white">
+        Exit demo
+      </a>
+    </div>
+  )}
 
   <!-- Welcome banner (fires on first login after registration) -->
   {isWelcome && (
@@ -128,6 +141,7 @@ const isWelcome = Astro.url.searchParams.get("welcome") === "1";
 
 <script>
   import { supabase } from "../../lib/supabase";
+  import { getDemoPersonaKeyFromClient, DEMO_PERSONAS } from "../../lib/demoPersonas";
 
   declare global {
     interface Window {
@@ -137,14 +151,22 @@ const isWelcome = Astro.url.searchParams.get("welcome") === "1";
   }
 
   async function loadAccount() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { window.location.href = "/auth/login"; return; }
+    const demoKey = getDemoPersonaKeyFromClient();
+    let mother;
 
-    const { data: mother } = await supabase
-      .from("mothers")
-      .select("*")
-      .eq("id", user.id)
-      .single();
+    if (demoKey) {
+      mother = DEMO_PERSONAS[demoKey];
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { window.location.href = "/auth/login"; return; }
+
+      const { data: m } = await supabase
+        .from("mothers")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      mother = m;
+    }
 
     if (!mother) return;
 

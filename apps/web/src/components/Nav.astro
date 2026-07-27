@@ -38,11 +38,11 @@ const currentPath = Astro.url.pathname;
     <!-- Right actions -->
     <div class="flex items-center gap-3">
       <a
-        href="/account"
+        href="/auth/login"
         class="hidden md:flex items-center gap-1.5 text-sm font-medium
           text-brand-muted hover:text-brand-teal transition-colors"
       >
-        Account
+        Sign In
       </a>
       <CartBadge client:load />
       <a
@@ -82,11 +82,11 @@ const currentPath = Astro.url.pathname;
         </a>
       ))}
       <a
-        href="/account"
+        href="/auth/login"
         class="px-3 py-2.5 rounded-md text-sm font-medium text-brand-muted
           hover:text-brand-teal hover:bg-brand-teal/5 transition-colors"
       >
-        My Account
+        Sign In
       </a>
     </nav>
   </div>

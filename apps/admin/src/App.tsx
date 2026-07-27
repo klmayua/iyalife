@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
+import { Login } from "./pages/Login";
+import { DEMO_HANDOFF_TOKEN, getDemoSession, setDemoSession } from "./lib/demoAuth";
 import Dashboard   from "./pages/Dashboard";
 import Orders      from "./pages/Orders";
 import Mothers     from "./pages/Mothers";
@@ -23,6 +26,22 @@ function Placeholder({ title }: { title: string }) {
 }
 
 export function App() {
+  const [authed, setAuthed] = useState(false);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("demo") === "founder" && params.get("token") === DEMO_HANDOFF_TOKEN) {
+      setDemoSession();
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    setAuthed(getDemoSession());
+    setChecked(true);
+  }, []);
+
+  if (!checked) return null;
+  if (!authed) return <Login onSuccess={() => setAuthed(true)} />;
+
   return (
     <BrowserRouter>
       <div className="flex h-screen bg-brand-surface font-sans overflow-hidden">

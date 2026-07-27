@@ -2,11 +2,23 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
+import { getDemoPersonaKeyFromCookieHeader } from "../../lib/demoPersonas";
 
 export const prerender = false;
+
+const demoPersonaKey = getDemoPersonaKeyFromCookieHeader(Astro.cookies.get("iyalife_demo")?.value);
 ---
 <BaseLayout title="My Profile — IyaLife">
   <Nav />
+  {demoPersonaKey && (
+    <div class="bg-brand-gold text-white px-4 py-2.5 text-center text-sm font-medium flex items-center justify-center gap-3">
+      <span>👋 You're viewing a demo account.</span>
+      <a href="/auth/login" onclick="document.cookie='iyalife_demo=; path=/; max-age=0'"
+        class="text-white underline decoration-white/50 hover:decoration-white">
+        Exit demo
+      </a>
+    </div>
+  )}
   <main class="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-brand-teal-dark">My Profile</h1>
@@ -31,10 +43,21 @@ export const prerender = false;
 </BaseLayout>
 <script>
   import { supabase } from "../../lib/supabase";
+  import { getDemoPersonaKeyFromClient, DEMO_PERSONAS } from "../../lib/demoPersonas";
+
   async function load() {
-    const { data:{user} } = await supabase.auth.getUser();
-    if (!user) { window.location.href="/auth/login"; return; }
-    const { data:m } = await supabase.from("mothers").select("*").eq("id",user.id).single();
+    const demoKey = getDemoPersonaKeyFromClient();
+    let m;
+
+    if (demoKey) {
+      m = DEMO_PERSONAS[demoKey];
+    } else {
+      const { data:{user} } = await supabase.auth.getUser();
+      if (!user) { window.location.href="/auth/login"; return; }
+      const { data: fetched } = await supabase.from("mothers").select("*").eq("id",user.id).single();
+      m = fetched;
+    }
+
     if (!m) return;
     document.getElementById("avatar")!.textContent = m.full_name.charAt(0);
     document.getElementById("profile-name")!.innerHTML = `<p class="font-bold text-brand-teal-dark text-lg">${m.full_name}</p><p class="text-sm text-brand-muted">Member #${m.member_number ?? "—"}</p>`;

@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { Logo, cn } from "@iyalife/ui";
+import { clearDemoSession } from "../lib/demoAuth";
 
 const navItems = [
   {
@@ -87,9 +88,16 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-5 py-4 border-t border-white/10">
+      <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-2">
         <p className="text-xs text-white/30">Phase Zero · v1.0</p>
-        <p className="text-xs text-white/50 font-medium mt-0.5">IyaLife</p>
+        <p className="text-xs text-white/50 font-medium">IyaLife</p>
+        <button
+          onClick={() => { clearDemoSession(); window.location.reload(); }}
+          className="text-xs text-white/50 hover:text-white text-left underline decoration-white/30
+            hover:decoration-white transition-colors"
+        >
+          Sign out
+        </button>
       </div>
     </aside>
   );

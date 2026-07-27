@@ -1,14 +1,22 @@
 ---
 import AuthLayout from "../../layouts/AuthLayout.astro";
+import { PERSONA_CARDS } from "../../lib/demoPersonas";
 const invalid = Astro.url.searchParams.get("invalid");
+
+const tierStyles: Record<string, string> = {
+  silver:  "bg-gray-100 text-gray-600 border-gray-300",
+  gold:    "bg-amber-50 text-amber-700 border-amber-300",
+  diamond: "bg-blue-50 text-blue-700 border-blue-300",
+  founder: "bg-brand-teal-light text-brand-teal border-brand-teal/40",
+};
 ---
 
 <AuthLayout title="Sign In">
-  <div class="flex flex-col gap-5">
+  <div class="flex flex-col gap-6">
 
     <div class="text-center">
       <h1 class="text-xl font-bold text-brand-teal-dark">Welcome back</h1>
-      <p class="text-sm text-brand-muted mt-1">Enter your phone to sign in.</p>
+      <p class="text-sm text-brand-muted mt-1">Explore IyaLife as a demo persona, or sign in with your phone.</p>
     </div>
 
     {invalid && (
@@ -17,56 +25,119 @@ const invalid = Astro.url.searchParams.get("invalid");
       </div>
     )}
 
-    <div id="step-phone" class="flex flex-col gap-3.5">
+    <!-- Demo personas -->
+    <div class="flex flex-col gap-3">
+      <p class="text-xs font-semibold uppercase tracking-wide text-brand-muted">Demo access</p>
+      <div class="grid grid-cols-2 gap-2.5" id="persona-cards">
+        {PERSONA_CARDS.map(p => (
+          <button
+            type="button"
+            data-persona={p.key}
+            class="persona-card flex flex-col gap-1.5 p-3 rounded-brand border-2 border-brand-border
+              bg-white text-left hover:border-brand-teal transition-colors">
+            <span class={`inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[10px] font-semibold border ${tierStyles[p.key]}`}>
+              ◆ {p.role}
+            </span>
+            <span class="text-sm font-semibold text-brand-ink">{p.name}</span>
+            <span class="text-[11px] text-brand-muted leading-snug">{p.description}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Demo sign-in form (email/password, preloaded from persona selection) -->
+    <div class="flex flex-col gap-3 border-t border-brand-border pt-5">
       <div>
-        <label class="block text-sm font-medium text-brand-ink mb-1.5">Phone number</label>
-        <div class="flex gap-2">
-          <span class="flex items-center px-3 rounded-brand border border-brand-border
-            bg-brand-surface text-brand-muted text-sm font-medium">🇳🇬 +234</span>
+        <label class="block text-sm font-medium text-brand-ink mb-1.5">Email</label>
+        <input
+          id="demo-email"
+          type="email"
+          placeholder="Select a demo persona above"
+          class="w-full px-3.5 py-2.5 rounded-brand border border-brand-border
+            text-brand-ink placeholder:text-brand-muted/50 text-sm
+            focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-brand-ink mb-1.5">Password</label>
+        <input
+          id="demo-password"
+          type="password"
+          placeholder="••••••••"
+          class="w-full px-3.5 py-2.5 rounded-brand border border-brand-border
+            text-brand-ink placeholder:text-brand-muted/50 text-sm
+            focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
+        />
+      </div>
+      <p id="demo-error" class="hidden text-xs text-red-600"></p>
+      <button
+        id="demo-signin-btn"
+        class="w-full py-3 rounded-brand bg-brand-teal text-white font-semibold
+          text-sm hover:bg-brand-teal-dark transition-colors">
+        Sign In
+      </button>
+    </div>
+
+    <!-- Real member phone sign-in (collapsed by default) -->
+    <div class="border-t border-brand-border pt-4">
+      <button id="toggle-real-signin" type="button"
+        class="text-xs text-brand-muted hover:text-brand-teal text-center w-full">
+        Already a real member? Sign in with your phone →
+      </button>
+
+      <div id="real-signin" class="hidden flex-col gap-3.5 mt-4">
+        <div id="step-phone" class="flex flex-col gap-3.5">
+          <div>
+            <label class="block text-sm font-medium text-brand-ink mb-1.5">Phone number</label>
+            <div class="flex gap-2">
+              <span class="flex items-center px-3 rounded-brand border border-brand-border
+                bg-brand-surface text-brand-muted text-sm font-medium">🇳🇬 +234</span>
+              <input
+                id="phone"
+                type="tel"
+                placeholder="8012345678"
+                class="flex-1 px-3.5 py-2.5 rounded-brand border border-brand-border
+                  text-brand-ink placeholder:text-brand-muted/50 text-sm
+                  focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
+              />
+            </div>
+          </div>
+          <button
+            onclick="sendOTP()"
+            class="w-full py-3 rounded-brand bg-brand-teal text-white font-semibold
+              text-sm hover:bg-brand-teal-dark transition-colors">
+            Send verification code
+          </button>
+        </div>
+
+        <div id="step-otp" class="hidden flex flex-col gap-3.5">
+          <p class="text-sm text-brand-muted text-center">Enter the code sent to your phone.</p>
           <input
-            id="phone"
-            type="tel"
-            placeholder="8012345678"
-            class="flex-1 px-3.5 py-2.5 rounded-brand border border-brand-border
-              text-brand-ink placeholder:text-brand-muted/50 text-sm
+            id="otp"
+            type="text"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="6-digit code"
+            class="w-full px-3.5 py-3 rounded-brand border border-brand-border
+              text-brand-ink text-center text-xl tracking-[0.5em] font-bold
               focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
           />
+          <button
+            id="btn-verify"
+            onclick="verifyOTP()"
+            class="w-full py-3 rounded-brand bg-brand-teal text-white font-semibold
+              text-sm hover:bg-brand-teal-dark transition-colors">
+            Sign in
+          </button>
+          <button onclick="document.getElementById('step-phone').classList.remove('hidden'); document.getElementById('step-otp').classList.add('hidden')"
+            class="text-xs text-brand-muted hover:text-brand-teal text-center">
+            Change number
+          </button>
         </div>
       </div>
-      <button
-        onclick="sendOTP()"
-        class="w-full py-3 rounded-brand bg-brand-teal text-white font-semibold
-          text-sm hover:bg-brand-teal-dark transition-colors">
-        Send verification code
-      </button>
     </div>
 
-    <div id="step-otp" class="hidden flex flex-col gap-3.5">
-      <p class="text-sm text-brand-muted text-center">Enter the code sent to your phone.</p>
-      <input
-        id="otp"
-        type="text"
-        inputmode="numeric"
-        maxlength="6"
-        placeholder="6-digit code"
-        class="w-full px-3.5 py-3 rounded-brand border border-brand-border
-          text-brand-ink text-center text-xl tracking-[0.5em] font-bold
-          focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20"
-      />
-      <button
-        id="btn-verify"
-        onclick="verifyOTP()"
-        class="w-full py-3 rounded-brand bg-brand-teal text-white font-semibold
-          text-sm hover:bg-brand-teal-dark transition-colors">
-        Sign in
-      </button>
-      <button onclick="document.getElementById('step-phone').classList.remove('hidden'); document.getElementById('step-otp').classList.add('hidden')"
-        class="text-xs text-brand-muted hover:text-brand-teal text-center">
-        Change number
-      </button>
-    </div>
-
-    <div class="text-center text-xs text-brand-muted border-t border-brand-border pt-4">
+    <div class="text-center text-xs text-brand-muted">
       Don't have an account?{" "}
       <span class="text-brand-teal font-medium">You need an invitation to join.</span>
     </div>
@@ -75,6 +146,13 @@ const invalid = Astro.url.searchParams.get("invalid");
 
 <script>
   import { supabase } from "../../lib/supabase";
+  import {
+    DEMO_CREDENTIALS,
+    DEMO_ADMIN_URL,
+    DEMO_HANDOFF_TOKEN,
+    setDemoSessionCookie,
+    type PersonaKey,
+  } from "../../lib/demoPersonas";
 
   declare global {
     interface Window {
@@ -82,6 +160,53 @@ const invalid = Astro.url.searchParams.get("invalid");
       verifyOTP: () => Promise<void>;
     }
   }
+
+  // ── Demo persona selection ────────────────────────────────────────────────
+  const emailInput = document.getElementById("demo-email") as HTMLInputElement;
+  const passwordInput = document.getElementById("demo-password") as HTMLInputElement;
+  const cards = document.querySelectorAll<HTMLButtonElement>(".persona-card");
+
+  cards.forEach(card => {
+    card.addEventListener("click", () => {
+      cards.forEach(c => c.classList.remove("border-brand-teal", "bg-brand-teal/5"));
+      card.classList.add("border-brand-teal", "bg-brand-teal/5");
+      const key = card.dataset.persona as keyof typeof DEMO_CREDENTIALS;
+      const creds = DEMO_CREDENTIALS[key];
+      emailInput.value = creds.email;
+      passwordInput.value = creds.password;
+    });
+  });
+
+  document.getElementById("demo-signin-btn")?.addEventListener("click", () => {
+    const email = emailInput.value.trim().toLowerCase();
+    const password = passwordInput.value;
+    const errorEl = document.getElementById("demo-error")!;
+
+    const match = (Object.entries(DEMO_CREDENTIALS) as [keyof typeof DEMO_CREDENTIALS, { email: string; password: string }][])
+      .find(([, c]) => c.email.toLowerCase() === email && c.password === password);
+
+    if (!match) {
+      errorEl.textContent = "Select a demo persona above, or check the email and password.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
+    errorEl.classList.add("hidden");
+
+    const [key] = match;
+    if (key === "founder") {
+      window.location.href = `${DEMO_ADMIN_URL}/?demo=founder&token=${DEMO_HANDOFF_TOKEN}`;
+      return;
+    }
+
+    setDemoSessionCookie(key as PersonaKey);
+    window.location.href = "/account?welcome=1";
+  });
+
+  // ── Real member phone sign-in (unchanged, just collapsed by default) ───────
+  document.getElementById("toggle-real-signin")?.addEventListener("click", () => {
+    document.getElementById("real-signin")?.classList.toggle("hidden");
+    document.getElementById("real-signin")?.classList.toggle("flex");
+  });
 
   let phone = "";
 
