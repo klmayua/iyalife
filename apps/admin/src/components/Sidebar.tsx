@@ -49,8 +49,8 @@ export function Sidebar() {
 
       {/* Logo */}
       <div className="px-5 py-5 border-b border-white/10">
-        <div className="inline-flex bg-white rounded-md px-2.5 py-1.5">
-          <Logo size={22} />
+        <div className="inline-flex bg-white rounded-md px-3 py-2">
+          <Logo size={55} />
         </div>
         <p className="text-xs text-white/40 mt-2 ml-1">Admin Console</p>
       </div>
