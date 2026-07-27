@@ -1,6 +1,5 @@
 {
   "framework": "astro",
   "buildCommand": "cd ../.. && pnpm turbo build --filter=@iyalife/web",
-  "outputDirectory": "apps/web/dist",
   "installCommand": "pnpm install"
 }
